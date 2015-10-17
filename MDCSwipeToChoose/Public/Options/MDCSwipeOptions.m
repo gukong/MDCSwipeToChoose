@@ -39,7 +39,7 @@
         _swipeAnimationOptions = UIViewAnimationOptionCurveEaseIn;
         _rotationFactor = 3.f;
 
-        _onChosen = [[self class] exitScreenOnChosenWithDuration:0.3
+        _onChosen = [[self class] exitScreenOnChosenWithDuration:0.1
                                                          options:UIViewAnimationOptionCurveLinear];
     }
     return self;

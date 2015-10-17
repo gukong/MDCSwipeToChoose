@@ -272,7 +272,7 @@ const void * const MDCAnimationKey = &MDCAnimationKey;
                 self.mdc_viewState.rotationDirection = MDCRotationTowardsCenter;
             }
         }
-    } else if (panGestureRecognizer.state == UIGestureRecognizerStateEnded) {
+    } else if (panGestureRecognizer.state == UIGestureRecognizerStateEnded || panGestureRecognizer.state == UIGestureRecognizerStateCancelled) {
         // Either move the view back to its original position or move it off screen.
         [self mdc_finalizePosition];
     } else {

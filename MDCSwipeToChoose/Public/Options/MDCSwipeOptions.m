@@ -60,10 +60,21 @@
                              state.view.center = CGPointMake(CGRectGetMidX(destination),
                                                              CGRectGetMidY(destination));
                          } completion:^(BOOL finished) {
-                             if (finished) {
-                                 [state.view removeFromSuperview];
-                                 state.onCompletion();
-                             }
+                             /* *
+                              *  其他页面可能要求划走最前面的card
+                              *  如果是正在展示的页面不是match，这里返回的finished 为 NO
+                              *  导致card没有完整的划走
+                              *  经测试，去掉finished的检测不会影响正常的使用
+                              */
+                             
+                             /*
+                              if (finished) {
+                              [state.view removeFromSuperview];
+                              state.onCompletion();
+                              }
+                              */
+                             [state.view removeFromSuperview];
+                             state.onCompletion();
                          }];
     };
 }

@@ -9,6 +9,8 @@
 #import <UIKit/UIKit.h>
 #import "MDCSwipeDirection.h"
 
+typedef void (^MatchCardMovementBlock)(MDCSwipeDirection direction);
+
 /*!
  * Classes that adopt the `MDCSwipeToChooseDelegate` protcol may respond to
  * swipe events, such as when a view has been swiped and chosen, or when a
@@ -37,5 +39,12 @@
  * is removed from the view hierarchy by the time this message is sent.
  */
 - (void)view:(UIView *)view wasChosenWithDirection:(MDCSwipeDirection)direction;
+
+/*!
+ *滑动卡片，手指放开了调用此方法
+ * direction 卡片从什么方向消失
+ * moveBlock 手指放开后，处理卡片的移动
+ */
+- (void)view:(UIView *)view willMoveWithDirection:(MDCSwipeDirection)direction moveBlock:(MatchCardMovementBlock)moveBlock;
 
 @end

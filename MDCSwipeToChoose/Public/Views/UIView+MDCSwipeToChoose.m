@@ -125,6 +125,20 @@ const void * const MDCAnimationKey = &MDCAnimationKey;
 
 - (void)mdc_finalizePosition {
     MDCSwipeDirection direction = [self mdc_directionOfExceededThreshold];
+    id<MDCSwipeToChooseDelegate> swipeToChooseDelegate = self.mdc_options.delegate;
+    if ([swipeToChooseDelegate respondsToSelector:@selector(view:willMoveWithDirection:moveBlock:)]) {
+        [swipeToChooseDelegate view:self
+              willMoveWithDirection:direction
+                          moveBlock:^(MDCSwipeDirection direction) {
+                              [self mdc_moveViewWith:direction];
+                          }];
+    }
+    else {
+        [self mdc_moveViewWith:direction];
+    }
+}
+
+- (void)mdc_moveViewWith:(MDCSwipeDirection)direction {
     switch (direction) {
         case MDCSwipeDirectionRight:
         case MDCSwipeDirectionLeft: {
@@ -135,6 +149,7 @@ const void * const MDCAnimationKey = &MDCAnimationKey;
         }
         case MDCSwipeDirectionNone:
             [self mdc_returnToOriginalCenter];
+            [self mdc_executeOnPanBlockForTranslation:CGPointZero];
             break;
     }
 }

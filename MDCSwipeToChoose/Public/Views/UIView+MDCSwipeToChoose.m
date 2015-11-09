@@ -171,7 +171,6 @@ const void * const MDCAnimationKey = &MDCAnimationKey;
     [stringAnimation setToValue:[NSValue valueWithCGPoint:self.mdc_viewState.originalCenter]];
     stringAnimation.springBounciness = 7.36f;
     stringAnimation.springSpeed = 5.47f;
-    stringAnimation.dynamicsTension = 1000.f;
     stringAnimation.delegate = self;
     [self pop_addAnimation:stringAnimation forKey:@"anim0"];
 }

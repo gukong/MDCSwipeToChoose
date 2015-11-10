@@ -50,6 +50,11 @@ typedef void (^MDCSwipedOnCompletionBlock)(void);
 @property (nonatomic, assign) MDCSwipeDirection direction;
 
 /*!
+ * The velocity if swipe.
+ */
+@property (nonatomic, assign) CGPoint velocity;
+
+/*!
  * A callback to be executed after any animations performed by the `MDCSwipeOptions`
  * `onChosen` callback.
  */

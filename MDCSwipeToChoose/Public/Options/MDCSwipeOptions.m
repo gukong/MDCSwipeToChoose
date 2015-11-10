@@ -38,8 +38,8 @@
         _swipeAnimationDuration = 0.1;
         _swipeAnimationOptions = UIViewAnimationOptionCurveEaseIn;
         _rotationFactor = 3.f;
-
-        _onChosen = [[self class] exitScreenOnChosenWithDuration:0.1
+        
+        _onChosen = [[self class] exitScreenOnChosenWithDuration:0.2
                                                          options:UIViewAnimationOptionCurveLinear];
     }
     return self;
@@ -53,7 +53,18 @@
         CGRect destination = MDCCGRectExtendedOutOfBounds(state.view.frame,
                                                           state.view.superview.bounds,
                                                           state.translation);
-        [UIView animateWithDuration:duration
+        CGPoint velocity = state.velocity;
+        CGFloat distance = sqrtf( powf(destination.size.width, 2.0) +
+                                 powf(destination.size.height, 2.0) );
+        CGFloat duration1 = distance / fabsf(velocity.x) / 3;
+        if (duration1 > 0.3) {
+            duration1 = 0.3;
+        }
+        if (duration1 < 0.1) {
+            duration1 = 0.1;
+        }
+        NSLog(@"duration:%f",duration1);
+        [UIView animateWithDuration:duration1
                               delay:0.0
                             options:options
                          animations:^{

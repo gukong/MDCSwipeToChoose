@@ -44,6 +44,10 @@ CGRect MDCCGRectExtendedOutOfBounds(const CGRect rect,
                                     const CGRect bounds,
                                     const CGPoint translation) {
     CGRect destination = rect;
+    if (CGPointEqualToPoint(translation, CGPointZero)) {
+        return destination;
+    }
+    
     while (!CGRectIsNull(CGRectIntersection(bounds, destination))) {
         destination = CGRectMake(CGRectGetMinX(destination) + translation.x,
                                  CGRectGetMinY(destination) + translation.y,

@@ -38,7 +38,7 @@
         _nopeColor = [UIColor colorWith8BitRed:247.f green:91.f blue:37.f alpha:1.f];
         _nopeRotationAngle = 15.f;
 
-        _threshold = 100.f;
+        _threshold = 64.f;
     }
     return self;
 }

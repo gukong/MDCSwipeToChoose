@@ -50,4 +50,9 @@
  */
 @property (nonatomic, assign) CGFloat thresholdRatio;
 
+/*!
+ * The view translation.
+ */
+@property (nonatomic, assign) CGPoint translation;
+
 @end

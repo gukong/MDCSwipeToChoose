@@ -51,7 +51,7 @@ const void * const MDCAnimationKey = &MDCAnimationKey;
     
     // A swipe in no particular direction "finalizes" the swipe.
     if (direction == MDCSwipeDirectionNone) {
-        [self mdc_finalizePosition];
+        [self mdc_finalizePosition:CGPointZero];
         return;
     }
     
@@ -68,7 +68,7 @@ const void * const MDCAnimationKey = &MDCAnimationKey;
     
     // Finalize upon completion of the animations.
     void (^completion)(BOOL) = ^(BOOL finished) {
-        if (finished) { [self mdc_finalizePosition]; }
+        if (finished) { [self mdc_finalizePosition:CGPointZero]; }
     };
     
     [UIView animateWithDuration:self.mdc_options.swipeAnimationDuration
@@ -123,28 +123,28 @@ const void * const MDCAnimationKey = &MDCAnimationKey;
 
 #pragma mark Translation
 
-- (void)mdc_finalizePosition {
-    MDCSwipeDirection direction = [self mdc_directionOfExceededThreshold];
+- (void)mdc_finalizePosition:(CGPoint)point {
+    MDCSwipeDirection direction = [self mdc_directionOfExceededThreshold:point];
     id<MDCSwipeToChooseDelegate> swipeToChooseDelegate = self.mdc_options.delegate;
     if ([swipeToChooseDelegate respondsToSelector:@selector(view:willMoveWithDirection:moveBlock:)]) {
         [swipeToChooseDelegate view:self
               willMoveWithDirection:direction
                           moveBlock:^(MDCSwipeDirection direction) {
-                              [self mdc_moveViewWith:direction];
+                              [self mdc_moveViewWith:direction velocity:point];
                           }];
     }
     else {
-        [self mdc_moveViewWith:direction];
+        [self mdc_moveViewWith:direction velocity:point];
     }
 }
 
-- (void)mdc_moveViewWith:(MDCSwipeDirection)direction {
+- (void)mdc_moveViewWith:(MDCSwipeDirection)direction velocity:(CGPoint)velocity {
     switch (direction) {
         case MDCSwipeDirectionRight:
         case MDCSwipeDirectionLeft: {
             CGPoint translation = MDCCGPointSubtract(self.center,
                                                      self.mdc_viewState.originalCenter);
-            [self mdc_exitSuperviewFromTranslation:translation];
+            [self mdc_exitSuperviewFromTranslation:translation velocity:velocity];
             break;
         }
         case MDCSwipeDirectionNone:
@@ -185,8 +185,8 @@ const void * const MDCAnimationKey = &MDCAnimationKey;
     }
 }
 
-- (void)mdc_exitSuperviewFromTranslation:(CGPoint)translation {
-    MDCSwipeDirection direction = [self mdc_directionOfExceededThreshold];
+- (void)mdc_exitSuperviewFromTranslation:(CGPoint)translation velocity:(CGPoint)velocity {
+    MDCSwipeDirection direction = [self mdc_directionOfExceededThreshold:CGPointZero];
     id<MDCSwipeToChooseDelegate> delegate = self.mdc_options.delegate;
     if ([delegate respondsToSelector:@selector(view:shouldBeChosenWithDirection:)]) {
         BOOL should = [delegate view:self shouldBeChosenWithDirection:direction];
@@ -203,6 +203,7 @@ const void * const MDCAnimationKey = &MDCAnimationKey;
     state.view = self;
     state.translation = translation;
     state.direction = direction;
+    state.velocity = velocity;
     state.onCompletion = ^{
         if ([delegate respondsToSelector:@selector(view:wasChosenWithDirection:)]) {
             [delegate view:self wasChosenWithDirection:direction];
@@ -226,6 +227,7 @@ const void * const MDCAnimationKey = &MDCAnimationKey;
         state.view = self;
         state.direction = direction;
         state.thresholdRatio = thresholdRatio;
+        state.translation = translation;
         self.mdc_options.onPan(state);
     }
 }
@@ -257,13 +259,25 @@ const void * const MDCAnimationKey = &MDCAnimationKey;
     }
 }
 
-- (MDCSwipeDirection)mdc_directionOfExceededThreshold {
-    if (self.center.x > self.mdc_viewState.originalCenter.x + self.mdc_options.threshold) {
-        return MDCSwipeDirectionRight;
-    } else if (self.center.x < self.mdc_viewState.originalCenter.x - self.mdc_options.threshold) {
-        return MDCSwipeDirectionLeft;
-    } else {
-        return MDCSwipeDirectionNone;
+- (MDCSwipeDirection)mdc_directionOfExceededThreshold:(CGPoint)point {
+    if (CGPointEqualToPoint(point, CGPointZero)) {
+        if (self.center.x > self.mdc_viewState.originalCenter.x + self.mdc_options.threshold) {
+            return MDCSwipeDirectionRight;
+        } else if (self.center.x < self.mdc_viewState.originalCenter.x - self.mdc_options.threshold) {
+            return MDCSwipeDirectionLeft;
+        } else {
+            return MDCSwipeDirectionNone;
+        }
+    }
+    else {
+        NSLog(@"------------------velocity:%f",point.x);
+        if (self.center.x > self.mdc_viewState.originalCenter.x + self.mdc_options.threshold || point.x > 1000) {
+            return MDCSwipeDirectionRight;
+        } else if (self.center.x < self.mdc_viewState.originalCenter.x - self.mdc_options.threshold || point.x < -1000) {
+            return MDCSwipeDirectionLeft;
+        } else {
+            return MDCSwipeDirectionNone;
+        }
     }
 }
 
@@ -288,7 +302,8 @@ const void * const MDCAnimationKey = &MDCAnimationKey;
         }
     } else if (panGestureRecognizer.state == UIGestureRecognizerStateEnded || panGestureRecognizer.state == UIGestureRecognizerStateCancelled) {
         // Either move the view back to its original position or move it off screen.
-        [self mdc_finalizePosition];
+        CGPoint ve = [panGestureRecognizer velocityInView:view.superview];
+        [self mdc_finalizePosition:ve];
     } else {
         // Update the position and transform. Then, notify any listeners of
         // the updates via the pan block.

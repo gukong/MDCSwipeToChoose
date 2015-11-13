@@ -164,7 +164,7 @@ const void * const MDCAnimationKey = &MDCAnimationKey;
     CGFloat cosDigree = velocity.x / veloctiyDis;
     CGFloat sinDigree = velocity.y / veloctiyDis;
     
-    CGFloat distance = veloctiyDis / 20;
+    CGFloat distance = veloctiyDis / 40;
     CGFloat temX = distance * cosDigree;
     CGFloat temY = distance * sinDigree;
     
@@ -179,7 +179,7 @@ const void * const MDCAnimationKey = &MDCAnimationKey;
         length = distance + sqrtf( powf(self.center.x-originalCenter.x, 2.0) + powf(self.center.y-originalCenter.y, 2.0) );
     }
     
-    if (veloctiyDis < 200) {
+    if (veloctiyDis < 1000) {
         [UIView animateWithDuration:self.mdc_options.swipeCancelledAnimationDuration
                               delay:0.0
                             options:self.mdc_options.swipeCancelledAnimationOptions | UIViewAnimationOptionAllowUserInteraction

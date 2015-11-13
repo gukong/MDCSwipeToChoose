@@ -157,29 +157,43 @@ const void * const MDCAnimationKey = &MDCAnimationKey;
 - (void)mdc_returnToOriginalCenterWithVelocity:(CGPoint)velocity {
     [self setMdc_isAnimation:YES];
     [self mdc_executeOnPanBlockForTranslation:CGPointZero];
+    
+    //滑动方向的速度
     CGFloat veloctiyDis = sqrtf( powf(velocity.x, 2.0) + powf(velocity.y, 2.0) );
     
     CGPoint originalCenter = self.mdc_viewState.originalCenter;
     
+    //cosß sinß
     CGFloat cosDigree = velocity.x / veloctiyDis;
     CGFloat sinDigree = velocity.y / veloctiyDis;
     
+    //滑行的距离
     CGFloat distance = veloctiyDis / 40;
     CGFloat temX = distance * cosDigree;
     CGFloat temY = distance * sinDigree;
     
+    //滑到更远的点
     CGPoint temPoint = CGPointZero;
     CGFloat length = 0.f;
     if ((self.center.x - originalCenter.x)*velocity.x > 0 || (self.center.y-originalCenter.y)*velocity.y > 0) {
+        /**
+         *  向着更远的地方滑（比如向下滑，向上滑）
+         */
         temPoint = CGPointMake(self.center.x + temX, self.center.y + temY);
         length = distance;
     }
     else {
+        /**
+         *  向着中间点（original center）滑
+         */
         temPoint = CGPointMake(originalCenter.x + temX, originalCenter.y + temY);
         length = distance + sqrtf( powf(self.center.x-originalCenter.x, 2.0) + powf(self.center.y-originalCenter.y, 2.0) );
     }
     
     if (veloctiyDis < 1000) {
+        /**
+         *  滑的速度慢，不需要移动到更远的位置再回弹
+         */
         [UIView animateWithDuration:self.mdc_options.swipeCancelledAnimationDuration
                               delay:0.0
                             options:self.mdc_options.swipeCancelledAnimationOptions | UIViewAnimationOptionAllowUserInteraction
@@ -198,7 +212,9 @@ const void * const MDCAnimationKey = &MDCAnimationKey;
         [self pop_addAnimation:stringAnimation forKey:@"anim0"];
     }
     else {
-        
+        /**
+         *  时间 = 路程 / 速度
+         */
         CGFloat duration = length / veloctiyDis * 1.5;
         if (duration > 0.36) {
             duration = 0.36f;

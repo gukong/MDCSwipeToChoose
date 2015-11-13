@@ -63,7 +63,6 @@
         if (duration1 < 0.1) {
             duration1 = 0.1;
         }
-        NSLog(@"duration:%f",duration1);
         [UIView animateWithDuration:duration1
                               delay:0.0
                             options:options

@@ -144,35 +144,82 @@ const void * const MDCAnimationKey = &MDCAnimationKey;
         case MDCSwipeDirectionLeft: {
             CGPoint translation = MDCCGPointSubtract(self.center,
                                                      self.mdc_viewState.originalCenter);
-            [self mdc_exitSuperviewFromTranslation:translation velocity:velocity];
+            [self mdc_exitSuperviewFromTranslation:translation velocity:velocity direction:direction];
             break;
         }
         case MDCSwipeDirectionNone:
-            [self mdc_returnToOriginalCenter];
+            [self mdc_returnToOriginalCenterWithVelocity:velocity];
             [self mdc_executeOnPanBlockForTranslation:CGPointZero];
             break;
     }
 }
 
-- (void)mdc_returnToOriginalCenter {
+- (void)mdc_returnToOriginalCenterWithVelocity:(CGPoint)velocity {
     [self setMdc_isAnimation:YES];
     [self mdc_executeOnPanBlockForTranslation:CGPointZero];
-    [UIView animateWithDuration:self.mdc_options.swipeCancelledAnimationDuration
-                          delay:0.0
-                        options:self.mdc_options.swipeCancelledAnimationOptions | UIViewAnimationOptionAllowUserInteraction
-                     animations:^{
-                         self.layer.transform = self.mdc_viewState.originalTransform;
-                     } completion:^(BOOL finished) {
-                         
-                     }];
+    CGFloat veloctiyDis = sqrtf( powf(velocity.x, 2.0) + powf(velocity.y, 2.0) );
     
-    POPSpringAnimation *stringAnimation = [POPSpringAnimation animationWithPropertyNamed:kPOPViewCenter];
-    [stringAnimation setFromValue:[NSValue valueWithCGPoint:self.center]];
-    [stringAnimation setToValue:[NSValue valueWithCGPoint:self.mdc_viewState.originalCenter]];
-    stringAnimation.springBounciness = 7.36f;
-    stringAnimation.springSpeed = 5.47f;
-    stringAnimation.delegate = self;
-    [self pop_addAnimation:stringAnimation forKey:@"anim0"];
+    CGPoint originalCenter = self.mdc_viewState.originalCenter;
+    
+    CGFloat cosDigree = velocity.x / veloctiyDis;
+    CGFloat sinDigree = velocity.y / veloctiyDis;
+    
+    CGFloat distance = veloctiyDis / 20;
+    CGFloat temX = distance * cosDigree;
+    CGFloat temY = distance * sinDigree;
+    
+    CGPoint temPoint = CGPointZero;
+    CGFloat length = 0.f;
+    if ((self.center.x - originalCenter.x)*velocity.x > 0 || (self.center.y-originalCenter.y)*velocity.y > 0) {
+        temPoint = CGPointMake(self.center.x + temX, self.center.y + temY);
+        length = distance;
+    }
+    else {
+        temPoint = CGPointMake(originalCenter.x + temX, originalCenter.y + temY);
+        length = distance + sqrtf( powf(self.center.x-originalCenter.x, 2.0) + powf(self.center.y-originalCenter.y, 2.0) );
+    }
+    
+    if (veloctiyDis < 200) {
+        [UIView animateWithDuration:self.mdc_options.swipeCancelledAnimationDuration
+                              delay:0.0
+                            options:self.mdc_options.swipeCancelledAnimationOptions | UIViewAnimationOptionAllowUserInteraction
+                         animations:^{
+                             self.layer.transform = self.mdc_viewState.originalTransform;
+                         } completion:^(BOOL finished) {
+                             
+                         }];
+        
+        POPSpringAnimation *stringAnimation = [POPSpringAnimation animationWithPropertyNamed:kPOPViewCenter];
+        [stringAnimation setFromValue:[NSValue valueWithCGPoint:self.center]];
+        [stringAnimation setToValue:[NSValue valueWithCGPoint:self.mdc_viewState.originalCenter]];
+        stringAnimation.springBounciness = 13.36f;
+        stringAnimation.springSpeed = 5.47f;
+        stringAnimation.delegate = self;
+        [self pop_addAnimation:stringAnimation forKey:@"anim0"];
+    }
+    else {
+        
+        CGFloat duration = length / veloctiyDis * 1.5;
+        if (duration > 0.36) {
+            duration = 0.36f;
+        }
+        if (duration < 0.1f) {
+            duration = 0.1f;
+        }
+        
+        [UIView animateWithDuration:duration animations:^{
+            [self setCenter:temPoint];
+            self.layer.transform = self.mdc_viewState.originalTransform;
+        } completion:^(BOOL finished) {
+            POPSpringAnimation *stringAnimation = [POPSpringAnimation animationWithPropertyNamed:kPOPViewCenter];
+            [stringAnimation setFromValue:[NSValue valueWithCGPoint:self.center]];
+            [stringAnimation setToValue:[NSValue valueWithCGPoint:self.mdc_viewState.originalCenter]];
+            stringAnimation.springBounciness = 7.36f;
+            stringAnimation.springSpeed = 5.47f;
+            stringAnimation.delegate = self;
+            [self pop_addAnimation:stringAnimation forKey:@"anim0"];
+        }];
+    }
 }
 
 - (void)pop_animationDidStop:(POPAnimation *)anim finished:(BOOL)finished {
@@ -185,13 +232,12 @@ const void * const MDCAnimationKey = &MDCAnimationKey;
     }
 }
 
-- (void)mdc_exitSuperviewFromTranslation:(CGPoint)translation velocity:(CGPoint)velocity {
-    MDCSwipeDirection direction = [self mdc_directionOfExceededThreshold:CGPointZero];
+- (void)mdc_exitSuperviewFromTranslation:(CGPoint)translation velocity:(CGPoint)velocity direction:(MDCSwipeDirection)direction {
     id<MDCSwipeToChooseDelegate> delegate = self.mdc_options.delegate;
     if ([delegate respondsToSelector:@selector(view:shouldBeChosenWithDirection:)]) {
         BOOL should = [delegate view:self shouldBeChosenWithDirection:direction];
         if (!should) {
-            [self mdc_returnToOriginalCenter];
+            [self mdc_returnToOriginalCenterWithVelocity:CGPointZero];
             if (self.mdc_options.onCancel != nil){
                 self.mdc_options.onCancel(self);
             }
@@ -270,14 +316,20 @@ const void * const MDCAnimationKey = &MDCAnimationKey;
         }
     }
     else {
-        NSLog(@"------------------velocity:%f",point.x);
-        if (self.center.x > self.mdc_viewState.originalCenter.x + self.mdc_options.threshold || point.x > 1000) {
-            return MDCSwipeDirectionRight;
-        } else if (self.center.x < self.mdc_viewState.originalCenter.x - self.mdc_options.threshold || point.x < -1000) {
-            return MDCSwipeDirectionLeft;
-        } else {
-            return MDCSwipeDirectionNone;
+        if (self.center.x > self.mdc_viewState.originalCenter.x) {
+            //卡片在右边
+            if ((self.center.x > self.mdc_viewState.originalCenter.x + self.mdc_options.threshold  && point.x > 0)|| point.x > 1000) {
+                return MDCSwipeDirectionRight;
+            }
         }
+        else if(self.center.x < self.mdc_viewState.originalCenter.x) {
+            //卡片在左边
+            if ((self.center.x < self.mdc_viewState.originalCenter.x - self.mdc_options.threshold && point.x < 0) || point.x < -1000) {
+                return MDCSwipeDirectionLeft;
+            }
+        }
+        
+        return MDCSwipeDirectionNone;
     }
 }
 

@@ -52,11 +52,11 @@
     return ^(MDCSwipeResult *state) {
         CGRect destination = MDCCGRectExtendedOutOfBounds(state.view.frame,
                                                           state.view.superview.bounds,
-                                                          state.translation);
+                                                          state.velocity);
         CGPoint velocity = state.velocity;
         CGFloat distance = sqrtf( powf(destination.size.width, 2.0) +
                                  powf(destination.size.height, 2.0) );
-        CGFloat duration1 = distance / fabsf(velocity.x) / 3;
+        CGFloat duration1 = distance / fabs(velocity.x) / 3;
         if (duration1 > 0.3) {
             duration1 = 0.3;
         }

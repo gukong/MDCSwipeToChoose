@@ -42,15 +42,18 @@ CGFloat MDCDegreesToRadians(const CGFloat degrees) {
 
 CGRect MDCCGRectExtendedOutOfBounds(const CGRect rect,
                                     const CGRect bounds,
-                                    const CGPoint translation) {
+                                    const CGPoint velocity) {
     CGRect destination = rect;
-    if (CGPointEqualToPoint(translation, CGPointZero)) {
+    if (CGPointEqualToPoint(velocity, CGPointZero)) {
         return destination;
     }
     
+    CGFloat offsetX = velocity.x > 0.f ? 50.f : -50.f;
+    CGFloat offsetY = velocity.y * offsetX / velocity.x;
+    
     while (!CGRectIsNull(CGRectIntersection(bounds, destination))) {
-        destination = CGRectMake(CGRectGetMinX(destination) + translation.x,
-                                 CGRectGetMinY(destination) + translation.y,
+        destination = CGRectMake(CGRectGetMinX(destination) + offsetX,
+                                 CGRectGetMinY(destination) + offsetY,
                                  CGRectGetWidth(destination),
                                  CGRectGetHeight(destination));
     }

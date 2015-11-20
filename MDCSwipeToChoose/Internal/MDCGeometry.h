@@ -29,4 +29,4 @@ extern CGPoint MDCCGPointSubtract(const CGPoint minuend, const CGPoint subtrahen
 extern CGFloat MDCDegreesToRadians(const CGFloat degrees);
 extern CGRect MDCCGRectExtendedOutOfBounds(const CGRect rect,
                                            const CGRect bounds,
-                                           const CGPoint translation);
+                                           const CGPoint velocity);

@@ -57,8 +57,8 @@
         CGFloat distance = sqrtf( powf(destination.size.width, 2.0) +
                                  powf(destination.size.height, 2.0) );
         CGFloat duration1 = distance / fabs(velocity.x) / 3;
-        if (duration1 > 0.3) {
-            duration1 = 0.3;
+        if (duration1 > 0.2) {
+            duration1 = 0.2;
         }
         if (duration1 < 0.1) {
             duration1 = 0.1;
